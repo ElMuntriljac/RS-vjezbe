@@ -1,0 +1,12 @@
+{
+  "info": { "name": "AutoAtlas — Zadatak 2", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:3000" }],
+  "item": [
+    { "name": "Health — 200", "request": { "method": "GET", "url": "{{baseUrl}}/api/health" } },
+    { "name": "Svi automobili — 200", "request": { "method": "GET", "url": "{{baseUrl}}/api/automobili" } },
+    { "name": "BMW dizel — 200", "request": { "method": "GET", "url": "{{baseUrl}}/api/automobili?marka=BMW&gorivo=Dizel" } },
+    { "name": "Detalji automobila — 200", "request": { "method": "GET", "url": "{{baseUrl}}/api/automobili/1" } },
+    { "name": "Nepostojeci automobil — 404", "request": { "method": "GET", "url": "{{baseUrl}}/api/automobili/999" } },
+    { "name": "Posalji upit — 201", "request": { "method": "POST", "url": "{{baseUrl}}/api/upiti", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"automobilId\": 1,\n  \"ime\": \"Test korisnik\",\n  \"email\": \"test@example.com\",\n  \"poruka\": \"Zanima me automobil.\"\n}", "options": { "raw": { "language": "json" } } } } }
+  ]
+}
