@@ -1,0 +1,8 @@
+[
+  { "id": 1, "marka": "Volkswagen", "model": "Golf 8", "godina": 2022, "gorivo": "Benzin", "snaga": 110, "km": 42000, "cijena": 23900, "boja": "#b3bac0", "karoserija": "Kompakt", "mjenjac": "Automatski" },
+  { "id": 2, "marka": "BMW", "model": "320d", "godina": 2021, "gorivo": "Dizel", "snaga": 140, "km": 68000, "cijena": 31500, "boja": "#557588", "karoserija": "Limuzina", "mjenjac": "Automatski" },
+  { "id": 3, "marka": "Toyota", "model": "Corolla", "godina": 2023, "gorivo": "Hibrid", "snaga": 103, "km": 24000, "cijena": 26900, "boja": "#c65340", "karoserija": "Kompakt", "mjenjac": "Automatski" },
+  { "id": 4, "marka": "Audi", "model": "A4 Avant", "godina": 2020, "gorivo": "Dizel", "snaga": 120, "km": 91000, "cijena": 28400, "boja": "#727d73", "karoserija": "Karavan", "mjenjac": "Automatski" },
+  { "id": 5, "marka": "Renault", "model": "Clio", "godina": 2022, "gorivo": "Benzin", "snaga": 67, "km": 35000, "cijena": 14900, "boja": "#cc963e", "karoserija": "Kompakt", "mjenjac": "Ručni" },
+  { "id": 6, "marka": "Tesla", "model": "Model 3", "godina": 2023, "gorivo": "Električni", "snaga": 208, "km": 29000, "cijena": 34900, "boja": "#dddcd4", "karoserija": "Limuzina", "mjenjac": "Automatski" }
+]
