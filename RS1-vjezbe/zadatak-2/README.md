@@ -1,5 +1,15 @@
 # Zadatak 2 — AutoAtlas REST API
 
+## Objavljeni servisi i provjera
+
+- API: https://rs-vjezbe1-api.onrender.com
+- Frontend: https://rs-vjezbe-wsgv.onrender.com
+- Vue nadogradnja dohvaća popis i detalje te šalje POST upit; potrebno je objaviti najnoviji frontend commit na njegovom Static Site servisu.
+- Provjereno curlom 29. 10. 2026.: popis 200, detalji automobila 1 200, POST s oglednim podacima 201. CORS zaglavlje dopušta origin objavljenog frontenda.
+- Postman kolekcija sada koristi objavljeni API. Ručnu provjeru u Postmanu i pregled nove frontend objave treba još dovršiti.
+
+Donje lokalne upute i popis koraka dokumentiraju pripremu; API je u međuvremenu objavljen na gornjoj adresi.
+
 Zaseban Express.js REST poslužitelj. Vue frontend ostaje u `../zadatak-1` i zasad koristi svoje statičke podatke. Povezivanje frontenda s ovim API-jem i deploy oba servisa slijede kasnije.
 
 ## Lokalno pokretanje (Git Bash)

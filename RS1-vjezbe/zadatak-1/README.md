@@ -1,5 +1,13 @@
 # AutoAtlas — katalog automobila
 
+## Nadogradnja za zadatak 2
+
+Objavljeni frontend: https://rs-vjezbe-wsgv.onrender.com
+
+Vue sada dohvaća popis preko `GET https://rs-vjezbe1-api.onrender.com/api/automobili`, detalje preko `GET /api/automobili/:id` i šalje ogledni upit preko `POST /api/upiti`. Filtriranje ostaje na klijentu. Ugrađena je obrada učitavanja, grešaka i odgovora nakon slanja. Adresa API-ja može se promijeniti build varijablom `VITE_API_URL` (primjer u `.env.example`); zadana je javna adresa navedenog API-ja.
+
+Donji opis statičkog JSON dohvata dokumentira izvornu verziju zadatka 1 (commit `cc65cbd`). Datoteka `public/automobili.json` ostaje sačuvana, ali je nadograđeni frontend više ne koristi. Frontend je i dalje statička aplikacija posluživana iz `dist/index.html`; JSON podatke sada daje zaseban Express Web Service.
+
 Prvi zadatak iz Raspodijeljenih sustava. Jednostavna frontend aplikacija izrađena tehnologijama Vue 3 i Vite, bez zasebnog backenda.
 
 ## Funkcionalnosti

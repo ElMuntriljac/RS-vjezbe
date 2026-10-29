@@ -10,6 +10,46 @@ const gorivo = ref('')
 const redoslijed = ref('zadano')
 const odabrani = ref(null)
 const dijalog = ref(null)
+const apiUrl = (import.meta.env.VITE_API_URL || 'https://rs-vjezbe1-api.onrender.com').replace(/\/$/, '')
+const detaljiStatus = ref('')
+const detaljiId = ref(null)
+const slanje = ref(false)
+const upitStatus = ref('')
+const upitGreska = ref('')
+const obrazac = ref({ ime: '', email: '', poruka: '' })
+async function zahtjev(putanja, opcije = {}) {
+  const odgovor = await fetch(`${apiUrl}${putanja}`, { ...opcije, signal: AbortSignal.timeout(90000) })
+  const podaci = await odgovor.json()
+  if (!odgovor.ok) throw new Error(podaci.greska || `HTTP ${odgovor.status}`)
+  return podaci
+}
+async function otvoriDetalje(id) {
+  detaljiId.value = id
+  detaljiStatus.value = 'Dohvaćanje detalja…'
+  try {
+    const auto = await zahtjev(`/api/automobili/${id}`)
+    obrazac.value = { ime: '', email: '', poruka: '' }
+    upitStatus.value = ''; upitGreska.value = ''
+    odabrani.value = auto
+    detaljiStatus.value = ''
+  } catch {
+    detaljiStatus.value = 'Detalji nisu dostupni. Pokušaj ponovno.'
+  } finally { detaljiId.value = null }
+}
+async function posaljiUpit() {
+  if (slanje.value || !odabrani.value) return
+  slanje.value = true; upitStatus.value = ''; upitGreska.value = ''
+  try {
+    const odgovor = await zahtjev('/api/upiti', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ automobilId: odabrani.value.id, ...obrazac.value })
+    })
+    upitStatus.value = `${odgovor.poruka} Broj upita: ${odgovor.id}`
+    obrazac.value = { ime: '', email: '', poruka: '' }
+  } catch (error) {
+    upitGreska.value = error.message || 'Slanje nije uspjelo. Pokušaj ponovno.'
+  } finally { slanje.value = false }
+}
 watch(odabrani, async (auto) => {
   await nextTick()
   if (auto) dijalog.value.showModal()
@@ -36,10 +76,8 @@ async function ucitaj() {
   ucitavanje.value = true
   greska.value = ''
   try {
-    // Preglednik (klijent) traži JSON datoteku od statičkog poslužitelja.
-    const odgovor = await fetch(`${import.meta.env.BASE_URL}automobili.json`)
-    if (!odgovor.ok) throw new Error(`HTTP ${odgovor.status}`)
-    automobili.value = await odgovor.json()
+    // Klijent šalje GET zahtjev zasebnom Express servisu na Renderu.
+    automobili.value = await zahtjev('/api/automobili')
   } catch {
     greska.value = 'Katalog trenutačno nije dostupan. Pokušaj ponovno.'
   } finally { ucitavanje.value = false }
@@ -75,7 +113,8 @@ onMounted(ucitaj)
         <button class="reset" @click="resetiraj">Poništi filtre ↺</button>
       </div>
       <div class="results-bar"><p aria-live="polite">Prikazano <strong>{{ rezultati.length }}</strong> od {{ automobili.length }} automobila</p><label>Sortiraj <select v-model="redoslijed" aria-label="Poredak automobila"><option value="zadano">Preporučeni redoslijed</option><option value="jeftinije">Cijena: niža prema višoj</option><option value="skuplje">Cijena: viša prema nižoj</option><option value="novije">Najnovije godište</option></select></label></div>
-      <p v-if="ucitavanje" class="state" role="status">Učitavanje automobila…</p>
+      <p v-if="ucitavanje" class="state" role="status">Učitavanje automobila… Prvo pokretanje servisa može potrajati oko minute.</p>
+      <p v-if="detaljiStatus" role="status">{{ detaljiStatus }}</p>
       <div v-else-if="greska" class="state" role="alert"><p>{{ greska }}</p><button class="primary" @click="ucitaj">Pokušaj ponovno</button></div>
       <div v-else-if="!rezultati.length" class="state"><h3>Nema automobila za odabrane filtre.</h3><p>Pokušaj s drugim pojmom ili ukloni filtre.</p><button class="primary" @click="resetiraj">Prikaži sve automobile</button></div>
       <div v-else class="grid">
@@ -83,14 +122,25 @@ onMounted(ucitaj)
           <div class="car-image" :style="{ '--car-color': auto.boja }"><span class="body-tag">{{ auto.karoserija }}</span><span class="car-number">0{{ auto.id }}</span>
             <svg viewBox="0 0 420 210" role="img" :aria-label="`Stilizirana ilustracija: ${auto.marka} ${auto.model}`"><ellipse cx="213" cy="174" rx="170" ry="10" fill="#000" opacity=".09"/><path :d="auto.karoserija === 'Karavan' ? 'M35 144 54 111 126 97 161 57 274 57 320 105 365 119 384 144 380 165 37 165Z' : 'M35 144 54 116 128 99 174 59 252 59 310 105 365 119 384 144 380 165 37 165Z'" fill="var(--car-color)"/><path d="m145 101 37-32h33v32Zm80-32h23l43 34-66-2Z" fill="#30433f"/><path d="m44 136 52-10-7 14-49 6Zm305-11 23 11 5 9-28-6Z" fill="#fcf4d6"/><path d="M115 109h194M223 112v40" stroke="#000" opacity=".16" stroke-width="2"/><rect x="234" y="117" width="15" height="3" rx="1" fill="#000" opacity=".3"/><path d="M39 157h338" stroke="#000" opacity=".12" stroke-width="5"/><circle cx="111" cy="161" r="28" fill="#28302e"/><circle cx="111" cy="161" r="16" fill="#c6cdca"/><circle cx="111" cy="161" r="6" fill="#67736e"/><circle cx="311" cy="161" r="28" fill="#28302e"/><circle cx="311" cy="161" r="16" fill="#c6cdca"/><circle cx="311" cy="161" r="6" fill="#67736e"/></svg>
           </div>
-          <div class="card-content"><p class="brand">{{ auto.marka }}</p><h3>{{ auto.model }}</h3><p class="specs">{{ auto.godina }} <span>·</span> {{ formatBroja.format(auto.km) }} km <span>·</span> {{ auto.gorivo }}</p><div class="card-bottom"><strong>{{ novac.format(auto.cijena) }}</strong><button :aria-label="`Detalji za ${auto.marka} ${auto.model}`" @click="odabrani = auto">Detalji <span>↗</span></button></div></div>
+          <div class="card-content"><p class="brand">{{ auto.marka }}</p><h3>{{ auto.model }}</h3><p class="specs">{{ auto.godina }} <span>·</span> {{ formatBroja.format(auto.km) }} km <span>·</span> {{ auto.gorivo }}</p><div class="card-bottom"><strong>{{ novac.format(auto.cijena) }}</strong><button :aria-label="`Detalji za ${auto.marka} ${auto.model}`" :disabled="detaljiId !== null" @click="otvoriDetalje(auto.id)">Detalji <span>↗</span></button></div></div>
         </article>
       </div>
       <p class="disclaimer">Demonstracijski katalog · Podaci i cijene su ogledni. Ilustracije ne prikazuju stvarni izgled modela.</p>
     </section>
   </main>
   <footer><span class="footer-brand">AutoAtlas.</span><span>Raspodijeljeni sustavi · Vježba 1</span><a href="#">Povratak na vrh ↑</a></footer>
-  <dialog ref="dijalog" @close="odabrani = null" @cancel.prevent="odabrani = null">
-    <div v-if="odabrani" class="detail"><button class="close" autofocus aria-label="Zatvori detalje" @click="odabrani = null">✕</button><p class="eyebrow muted">POGLED IZBLIZA</p><h2>{{ odabrani.marka }} {{ odabrani.model }}</h2><dl><div v-for="[naziv, vrijednost] in [['Godište', odabrani.godina], ['Gorivo', odabrani.gorivo], ['Snaga', `${odabrani.snaga} kW`], ['Kilometraža', `${formatBroja.format(odabrani.km)} km`], ['Mjenjač', odabrani.mjenjac], ['Karoserija', odabrani.karoserija]]" :key="naziv"><dt>{{ naziv }}</dt><dd>{{ vrijednost }}</dd></div></dl><p class="detail-price">{{ novac.format(odabrani.cijena) }}</p><button class="primary" @click="odabrani = null">Natrag na katalog</button></div>
+  <dialog ref="dijalog" @close="odabrani = null" @cancel.prevent="!slanje && (odabrani = null)">
+    <div v-if="odabrani" class="detail"><button class="close" :disabled="slanje" autofocus aria-label="Zatvori detalje" @click="odabrani = null">✕</button><p class="eyebrow muted">POGLED IZBLIZA</p><h2>{{ odabrani.marka }} {{ odabrani.model }}</h2><dl><div v-for="[naziv, vrijednost] in [['Godište', odabrani.godina], ['Gorivo', odabrani.gorivo], ['Snaga', `${odabrani.snaga} kW`], ['Kilometraža', `${formatBroja.format(odabrani.km)} km`], ['Mjenjač', odabrani.mjenjac], ['Karoserija', odabrani.karoserija]]" :key="naziv"><dt>{{ naziv }}</dt><dd>{{ vrijednost }}</dd></div></dl><p class="detail-price">{{ novac.format(odabrani.cijena) }}</p><form class="inquiry" @submit.prevent="posaljiUpit">
+      <h3>Pošalji upit za automobil</h3>
+      <p class="form-note">Ogledni obrazac: koristi izmišljene podatke. Upit se privremeno sprema na poslužitelju; email se ne šalje.</p>
+      <fieldset :disabled="slanje">
+        <label>Ime<input v-model="obrazac.ime" required maxlength="100" autocomplete="name" /></label>
+        <label>Email<input v-model="obrazac.email" type="email" required maxlength="254" autocomplete="email" /></label>
+        <label>Poruka<textarea v-model="obrazac.poruka" required maxlength="2000" rows="3"></textarea></label>
+        <button class="primary" type="submit">{{ slanje ? 'Slanje…' : 'Pošalji upit' }}</button>
+      </fieldset>
+      <p v-if="upitStatus" role="status" class="form-success">{{ upitStatus }}</p>
+      <p v-if="upitGreska" role="alert" class="form-error">{{ upitGreska }}</p>
+    </form><button class="reset" :disabled="slanje" @click="odabrani = null">Natrag na katalog</button></div>
   </dialog>
 </template>
